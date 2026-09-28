@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TURKER | Toryum Uranyum Kompleks Enerji Reaktörü</title>
+<meta name="description" content="TURKER: Game of Neutrons takımının toryum katkılı, pasif güvenlikli küçük modüler reaktör tasarımı. TEKNOFEST 2026 Nükleer Enerji Teknolojileri Tasarım Yarışması, Kavramsal Tasarım kategorisi birincisi.">
+<meta name="theme-color" content="#0a2440">
+<meta property="og:type" content="website">
+<meta property="og:title" content="TURKER | Toryum Uranyum Kompleks Enerji Reaktörü">
+<meta property="og:description" content="Toryum katkılı, pompasız ve pasif güvenlikli küçük modüler reaktör. Game of Neutrons, Hacettepe Üniversitesi.">
+<meta property="og:image" content="https://gameofneutrons.github.io/img/og.jpg">
+<link rel="icon" href="img/favicon.png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Fira+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.min.js" } }
+</script>
+</head>
+<body>
+
+<header class="hero" id="basa">
+  <div class="topbar wrap">
+    <a class="brand" href="#basa" aria-label="Game of Neutrons"><img src="img/gon-white.png" alt="Game of Neutrons"></a>
+    <nav class="topnav" aria-label="Bölümler">
+      <a href="#nedir">TURKER nedir?</a>
+      <a href="#kor">Kor</a>
+      <a href="#toryum">Toryum</a>
+      <a href="#guvenlik">Güvenlik</a>
+      <a href="#sonuclar">Sonuçlar</a>
+      <a href="#tesis">Tesis</a>
+      <a href="#ekip">Ekip</a>
+    </nav>
+  </div>
+
+  <div class="hero-grid wrap">
+    <div class="hero-title">
+      <h1 class="wordmark">TURKER</h1>
+      <p class="hero-sub">Toryum Uranyum Kompleks Enerji Reaktörü</p>
+    </div>
+    <div class="hero-body">
+      <p class="hero-lead">Yakıtının bir kısmında uranyum yerine toryum kullanan, soğutma pompası olmayan küçük modüler reaktör. Game of Neutrons takımı bu tasarımla TEKNOFEST 2026 Nükleer Enerji Teknolojileri Tasarım Yarışması'nda Kavramsal Tasarım kategorisinin birincisi oldu.</p>
+      <p class="hero-credit">Hacettepe Üniversitesi, Nükleer Enerji Mühendisliği</p>
+    </div>
+
+    <figure class="stage" aria-label="TURKER korunun üç boyutlu modeli">
+      <div class="viewport">
+        <canvas id="core3d"></canvas>
+        <img class="stage-fallback" src="img/kor-serpent.jpg" alt="TURKER korunun Serpent çizimi" hidden>
+        <div class="readout" aria-live="polite">
+          <span class="readout-label">Kor gücü</span>
+          <span class="readout-value" id="power">%100</span>
+        </div>
+        <div class="picked" id="picked" hidden></div>
+      </div>
+      <figcaption class="stage-bar">
+        <button class="scram" id="scram" type="button">SCRAM</button>
+        <p class="stage-hint" id="stage-hint">Modeli sürükleyerek çevir, bir demete dokun. SCRAM kontrol çubuklarını kora bırakır.</p>
+      </figcaption>
+      <div class="legend" aria-hidden="true">
+        <span><i class="sw sw-u"></i>UO₂, %2.50 ile %4.60 arası</span>
+        <span><i class="sw sw-th"></i>ThO₂</span>
+        <span><i class="sw sw-be"></i>Berilyum yansıtıcı</span>
+        <span><i class="sw sw-rod"></i>Kontrol çubuğu</span>
+      </div>
+    </figure>
+  </div>
+</header>
+
+<main>
+
+  <section id="nedir" class="band">
+    <div class="wrap two">
+      <div class="prose">
+        <h2>TURKER nedir?</h2>
+        <p>TURKER, ihtiyaca göre yan yana eklenebilen küçük bir nükleer güç modülü. Tek modül 120 MW ısı üretiyor. Bunun 40 MW'ı elektriğe dönüşüyor; geri kalan ısı fabrikalar için buhar, deniz suyundan tatlı su ve şehirler için ısıtma olarak kullanılabiliyor.</p>
+        <p>Tasarımı, ABD'de lisans sürecinden geçmiş NuScale reaktörünü referans alarak yaptık ve üç noktada ondan ayrıldık: yakıtın yaklaşık %15'inde uranyum yerine toryum var, korun çevresinde berilyum yansıtıcı bulunuyor ve NuScale'in gadolinyumlu yakıt çubuklarının işini toryum görüyor.</p>
+        <p>Reaktörde soğutma pompası yok. Isınan su yükseliyor, soğuyan su aşağı iniyor ve bu döngü kendi kendine sürüyor. Elektrik tamamen kesilse bile kontrol çubukları yerçekimiyle düşüyor, modül de ısısını içinde durduğu su havuzuna kendiliğinden veriyor.</p>
+      </div>
+      <dl class="datasheet" aria-label="Temel parametreler">
+        <div><dt>Isıl güç</dt><dd>120 MWth</dd></div>
+        <div><dt>Net elektrik gücü</dt><dd>40.33 MWe</dd></div>
+        <div><dt>Isıl verim</dt><dd>%33.61</dd></div>
+        <div><dt>Sistem basıncı</dt><dd>12.755 MPa</dd></div>
+        <div><dt>Kor giriş / çıkış sıcaklığı</dt><dd>258.3 / 301.1 °C</dd></div>
+        <div><dt>Soğutma</dt><dd>Doğal sirkülasyon</dd></div>
+        <div><dt>Yakıt demeti</dt><dd>37 adet, 17×17</dd></div>
+        <div><dt>Toryum çubuğu</dt><dd>1508 / 9768</dd></div>
+        <div><dt>Döngü uzunluğu</dt><dd>1150 gün</dd></div>
+        <div><dt>Nihai yanma oranı</dt><dd>45 MWd/kgAM</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section id="kor" class="band band-white">
+    <div class="wrap">
+      <div class="prose">
+        <h2>Kor</h2>
+        <p>Korda 37 yakıt demeti var. Her demet 17×17'lik bir dizi: 264 yakıt çubuğu, kontrol çubuklarının girdiği 24 kılavuz tüp ve ortada bir ölçüm tüpü. Aşağıdaki harita Serpent girdimizdeki gerçek dizilimden çizildi. Bir demete dokununca içindeki çubukları görebilirsin.</p>
+      </div>
+
+      <div class="coremap">
+        <div class="coremap-main">
+          <div class="toggle" role="radiogroup" aria-label="Harita görünümü">
+            <button type="button" role="radio" aria-checked="true" data-view="fuel">Yakıt</button>
+            <button type="button" role="radio" aria-checked="false" data-view="power">Güç dağılımı</button>
+          </div>
+          <canvas id="coremap" aria-label="37 demetlik kor haritası"></canvas>
+          <p class="map-note" id="map-note">Renkler UO₂ zenginliğini, yeşil noktalar toryum çubuklarını gösteriyor. D ve K harfleri kontrol çubuğu gruplarıdır.</p>
+        </div>
+        <div class="coremap-detail" id="asm-detail" aria-live="polite">
+          <canvas id="asm-canvas" aria-label="Seçili demetin çubuk dizilimi"></canvas>
+          <div id="asm-facts"></div>
+        </div>
+      </div>
+
+      <div class="two narrow-gap">
+        <div class="prose">
+          <h3>Güç korun içinde dengeli dağılıyor</h3>
+          <p>Toryum çubuklarını demetlere yerleştirirken amacımız gücü korun her yerine olabildiğince eşit dağıtmaktı. Sonuçta en yüklü demet ortalamanın yalnızca %2.9 üzerinde (1.029). Aynı yöntemle modellediğimiz NuScale korunda bu değer 1.166.</p>
+          <p>Kor, 20 cm kalınlığında berilyumla çevrili. Berilyum kordan kaçmaya çalışan nötronları geri yolluyor ve referans yansıtıcıya göre 494 pcm reaktivite kazandırıyor.</p>
+        </div>
+        <dl class="datasheet" aria-label="Kor boyutları">
+          <div><dt>Aktif yakıt yüksekliği</dt><dd>200 cm</dd></div>
+          <div><dt>Aktif kor çapı</dt><dd>169 cm</dd></div>
+          <div><dt>Çubuk aralığı</dt><dd>1.415 cm</dd></div>
+          <div><dt>Yakıt / yavaşlatıcı oranı</dt><dd>0.4</dd></div>
+          <div><dt>Berilyum yansıtıcı</dt><dd>20 cm</dd></div>
+          <div><dt>UO₂ zenginliği</dt><dd>%2.50 – %4.60</dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section id="toryum" class="band">
+    <div class="wrap two">
+      <div class="prose">
+        <h2>Neden toryum?</h2>
+        <p>Toryum tek başına zincirleme tepkime başlatamaz, ama bir nötron yakaladığında U-233'e dönüşür ve yakıt hâline gelir. Türkiye, dünyada bilinen toryum rezervlerinde önemli bir paya sahip. Bu rezervlerin başında Eskişehir'deki Beylikova ve Sivrihisar yatakları geliyor.</p>
+        <p>TURKER'de U-235 miktarını NuScale ile aynı tuttuk ve U-238'in yaklaşık %15'inin yerine Th-232 koyduk. Korda 1371 kg toryum var.</p>
+        <p>Bunun iki somut faydası oldu. Yanmanın başında korda bastırılması gereken fazla reaktivite 0.20'den 0.15'e indi, böylece NuScale'deki gadolinyumlu yakıta gerek kalmadı. ThO₂'nin ısı iletkenliği UO₂'den yüksek olduğu için toryum çubuklarını demetlerin kenarlarına koyduk; bu da yakıtın daha serin çalışmasına yardım etti.</p>
+      </div>
+      <figure class="chart" aria-label="Toryum oranına göre yanma başındaki fazla reaktivite">
+        <svg id="th-chart" viewBox="0 0 520 360" role="img"></svg>
+        <figcaption>Toryumun ağır metal içindeki payı arttıkça yanmanın başındaki fazla reaktivite azalıyor. Serpent yanma hesaplarından.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="guvenlik" class="band band-deep">
+    <div class="wrap two">
+      <div class="prose on-dark">
+        <h2>Güvenlik, pompaya ve elektriğe bağlı değil</h2>
+        <p>Reaktör modülü, vakumlu çelik bir koruma kabının içinde ve bu kap büyük bir su havuzuna gömülü. Güvenlik sistemleri bir kez devreye girdikten sonra elektriğe, dışarıdan suya ya da operatöre ihtiyaç duymuyor.</p>
+        <ul class="facts">
+          <li><strong>Soğutma pompası yok.</strong> Birincil devrede su, sıcak ve soğuk suyun yoğunluk farkıyla kendiliğinden dolaşıyor.</li>
+          <li><strong>Çubuklar yerçekimiyle düşer.</strong> Tüm AC ve DC güç kaybolsa bile sürücüler bırakır, kontrol çubukları kora girer.</li>
+          <li><strong>DHRS, bozunma ısısını havuza taşır.</strong> Buhar üreteci, havuza daldırılmış bir kondenserle kapalı bir döngü kurar. İki bağımsız trenden biri yeterli.</li>
+          <li><strong>ECCS yalnızca beş vanadan oluşur.</strong> Pompa, enjeksiyon borusu ya da dış su tankı yok. Vanalar açılınca su, basınç kabı ile koruma kabı arasında dolaşarak koru soğutmaya devam eder. Birincil devrede büyük çaplı boru olmadığı için büyük kırıklı soğutucu kaybı kazası fiziksel olarak mümkün değil.</li>
+        </ul>
+      </div>
+      <figure class="schematic">
+        <svg id="module-svg" viewBox="0 0 560 760" role="img" aria-label="Havuzdaki reaktör modülünün şeması"></svg>
+        <figcaption>Havuzdaki modülün şeması. Turuncu ok korda ısınıp yükselen suyu, mavi ok soğuyup inen suyu gösteriyor.</figcaption>
+      </figure>
+    </div>
+
+    <div class="wrap accidents">
+      <article class="accident">
+        <h3>Soğutucu kaybı kazası (LOCA)</h3>
+        <p>100. saniyede bir hat kırılıyor ve normal elektrik kesiliyor. Reaktör 110. saniyede duruyor, ECCS vanaları 6281. saniyede kendiliğinden açılıyor. 14 000 saniyelik hesap boyunca en sıcak yakıt zarfı yaklaşık 330 °C'de kaldı; sınır 1204 °C.</p>
+        <img src="img/loca.png" alt="LOCA sırasında maksimum zarf dış yüzey sıcaklığının zamana göre değişimi" loading="lazy">
+      </article>
+      <article class="accident">
+        <h3>Kontrol çubuğu çekilmesi (RIA)</h3>
+        <p>Bir çubuk grubu kontrolsüz şekilde dışarı çekiliyor. Güç nominalin 1.2 katına ulaştığında koruma sistemi trip veriyor, iki saniyelik gecikmeyle güç en fazla 1.33'e çıkıyor, çubuklar düşüyor ve yaklaşık 18. saniyede güç bozunma ısısı seviyesine iniyor. ECCS'e gerek kalmadı.</p>
+        <img src="img/ria.png" alt="RIA sırasında maksimum zarf dış yüzey sıcaklığının zamana göre değişimi" loading="lazy">
+      </article>
+    </div>
+  </section>
+
+  <section id="sonuclar" class="band band-white">
+    <div class="wrap">
+      <div class="prose">
+        <h2>Sonuçlar</h2>
+        <p>Toryumlu korun etkisini ayırmak için TURKER'i ve NuScale'i aynı güçte (160 MWth), aynı debi, giriş sıcaklığı ve basınçla, aynı ısıl-hidrolik modelle çözdük.</p>
+      </div>
+
+      <div class="two">
+        <table class="compare">
+          <caption>Eşit güçte (160 MWth) kor karşılaştırması</caption>
+          <thead><tr><th scope="col"></th><th scope="col">NuScale</th><th scope="col">TURKER</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">En yüksek yakıt merkez sıcaklığı</th><td>825 °C</td><td>744 °C</td></tr>
+            <tr><th scope="row">En yüksek soğutucu çıkış sıcaklığı</th><td>320.9 °C</td><td>314.9 °C</td></tr>
+            <tr><th scope="row">Minimum DNBR</th><td>2.73</td><td>3.14</td></tr>
+            <tr><th scope="row">Kor basınç düşüşü</th><td>16.4 kPa</td><td>15.2 kPa</td></tr>
+          </tbody>
+        </table>
+
+        <div class="margin-block">
+          <h3>Kendi gücümüzde ne kadar pay var?</h3>
+          <p>120 MWth'de en sıcak demetteki her çubuğu ayrı ayrı çözdük. Kaynama krizine olan uzaklığı gösteren DNBR en düşük 3.58 çıktı; güvenlik sınırı 1.3.</p>
+          <div class="gauge" role="img" aria-label="Minimum DNBR 3.58, sınır 1.3">
+            <div class="gauge-track"><span class="gauge-limit" style="left:32.5%"></span><span class="gauge-value" style="width:89.5%"></span></div>
+            <div class="gauge-scale"><span style="left:0">0</span><span style="left:32.5%">sınır 1.3</span><span style="left:89.5%">3.58</span><span style="left:100%">4</span></div>
+          </div>
+          <p class="small">En sıcak yakıt çubuğunun merkezi yaklaşık 705 °C'de kaldı. UO₂'nin erime sıcaklığı 2800 °C'nin üzerinde.</p>
+        </div>
+      </div>
+
+      <div class="two">
+        <table class="compare">
+          <caption>Reaktivite katsayıları</caption>
+          <tbody>
+            <tr><th scope="row">Yakıt sıcaklığı (Doppler)</th><td>−1.40 pcm/K</td></tr>
+            <tr><th scope="row">Yavaşlatıcı sıcaklığı</th><td>−3.75 pcm/K</td></tr>
+            <tr><th scope="row">Boşluk</th><td>−73.64 pcm/%</td></tr>
+            <tr><th scope="row">Bor</th><td>−17.36 pcm/ppm</td></tr>
+          </tbody>
+        </table>
+        <div class="prose">
+          <p>Katsayıların hepsi negatif. Yani reaktör ısındığında ya da suyun içinde buhar kabarcığı arttığında tepkime kendiliğinden yavaşlıyor. Kontrol çubuklarının toplam değeri 16 303 pcm; hepsi içerideyken k<sub>eff</sub> 0.877'ye iniyor.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tesis" class="band">
+    <div class="wrap">
+      <div class="prose">
+        <h2>Tesis ve kullanım alanları</h2>
+        <p>Santralde reaktör binası, türbin binası, soğutma kuleleri, su arıtma, radyoaktif atık ve güvenlik binaları ayrı ayrı yerleşiyor. Reaktörün ürettiği buhar yalnızca türbine gitmek zorunda değil.</p>
+      </div>
+      <figure class="wide">
+        <img src="img/tesis.jpg" alt="TURKER santralinin genel yerleşimi" loading="lazy">
+        <figcaption>Tesisin genel yerleşimi.</figcaption>
+      </figure>
+      <div class="uses">
+        <div>
+          <h3>Sanayi buharı</h3>
+          <p>Buharın bir kısmı türbini atlayıp proses hattına gider. Kimya, kâğıt, gıda ve çimento tesislerinde doğal gaz ya da kömür kazanlarının yerini alabilir.</p>
+        </div>
+        <div>
+          <h3>Deniz suyundan tatlı su</h3>
+          <p>Reaktörün elektriği ters osmoz tesisinin yüksek basınç pompalarını çalıştırır, düşük sıcaklıklı artık ısı da ön ısıtmada kullanılır.</p>
+        </div>
+        <div>
+          <h3>Bölgesel ısıtma ve soğutma</h3>
+          <p>Kışın sıcak su şehrin ısıtma şebekesine, yazın soğurmalı soğutma sistemlerine gider.</p>
+        </div>
+      </div>
+
+      <div class="two cycle">
+        <figure>
+          <img src="img/cevrim.png" alt="TURKER termodinamik çevrim şeması" loading="lazy">
+          <figcaption>Enerji çevrimi: üç kademeli türbin, nem ayırıcı, iki kapalı ve bir açık besleme suyu ısıtıcısı.</figcaption>
+        </figure>
+        <div class="prose">
+          <h3>Yerlilik ve maliyet</h3>
+          <p>Nötronik, ısıl-hidrolik ve güvenlik hesaplarının tamamını ekip olarak kendimiz yaptık. Toryum çevrimi, Türkiye'nin kendi kaynaklarıyla yakıt üretmesi için uzun vadeli bir Ar-Ge yolu açıyor.</p>
+          <p>İlk kor yüklemesinin maliyetini 41.7 milyon USD, ön-uç yakıt maliyetini 13.87 USD/MWh olarak hesapladık.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="ekip" class="band band-white">
+    <div class="wrap">
+      <div class="prose">
+        <h2>Ekip</h2>
+        <p>Game of Neutrons; Hacettepe Üniversitesi Nükleer Enerji Mühendisliği'nden dört lisans ve bir yüksek lisans öğrencisi ile İşletme Bölümü'nden bir öğrenciden oluşuyor.</p>
+      </div>
+      <ul class="team" id="team">
+        <!-- EKIP_UYELERI: isimler Hagi'den gelecek -->
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-grid">
+    <img class="foot-gon" src="img/gon-white.png" alt="Game of Neutrons">
+    <div>
+      <p>TURKER, Game of Neutrons takımının TEKNOFEST 2026 Nükleer Enerji Teknolojileri Tasarım Yarışması için hazırladığı kavramsal tasarımdır. Sayfadaki sayılar takımın Final Değerlendirme Raporu'ndan alınmıştır.</p>
+    </div>
+    <img class="foot-hu" src="img/hacettepe.png" alt="Hacettepe Üniversitesi Nükleer Enerji Mühendisliği Bölümü">
+  </div>
+</footer>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
