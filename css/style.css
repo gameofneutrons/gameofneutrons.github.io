@@ -278,6 +278,8 @@ sub { font-size: .7em; }
 @media (min-width: 64rem) { .team { grid-template-columns: repeat(3, 1fr); } }
 .team li { border-top: 2px solid var(--havuz); padding-top: .7rem; }
 .team .name { font-weight: 600; color: var(--havuz); display: block; }
+.team .name a { color: inherit; text-decoration-color: var(--cizgi); }
+.team .name a:hover { text-decoration-color: var(--mavi); }
 .team .role { color: var(--soluk); font-size: .95rem; }
 
 /* ---------- footer ---------- */

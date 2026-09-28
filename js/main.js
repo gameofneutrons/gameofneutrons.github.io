@@ -22,7 +22,7 @@ drawModule($('#module-svg'));
 // ---- team ----
 const teamList = $('#team');
 teamList.innerHTML = TEAM.map((m) => {
-  const name = m.link ? `<a href="${m.link}" rel="noopener">${m.name}</a>` : m.name;
+  const name = m.link ? `<a href="${m.link}" target="_blank" rel="noopener">${m.name}</a>` : m.name;
   return `<li><span class="name">${name}</span><span class="role">${m.role || ''}</span></li>`;
 }).join('');
 
