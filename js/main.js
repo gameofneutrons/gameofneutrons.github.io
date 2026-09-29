@@ -1,94 +1,64 @@
-import { ASSEMBLIES, CORE, ROD_GROUPS } from '../data/core.js';
-import { initCore3D } from './core3d.js';
 import { initCoreMap } from './coremap.js';
-import { drawThoriumChart, drawModule } from './figures.js';
+import { axialChart, beHeatmap, fmChart, initChartTips, keffChart, locaTimeline, riaChart, thoriumCharts } from './charts.js';
+import { drawModule } from './figures.js';
+import { initNav, initReveal } from './nav.js';
+import { initStage } from './stage.js';
 import { TEAM } from './team.js';
 
 const $ = (s) => document.querySelector(s);
 
-// Local screenshot helper (?shot&sec=id): hide everything before the section.
-const shotSec = new URLSearchParams(location.search).get('sec');
-if (location.search.includes('shot') && shotSec) {
-  const target = document.getElementById(shotSec);
-  document.querySelectorAll('header.hero, main > section').forEach((el) => {
-    if (el !== target && (el.compareDocumentPosition(target) & Node.DOCUMENT_POSITION_FOLLOWING)) el.style.display = 'none';
-  });
-}
+initNav();
+initReveal();
 
 // ---- figures ----
-drawThoriumChart($('#th-chart'));
+initChartTips();
+axialChart($('#axial-chart'));
+keffChart($('#keff-chart'));
+thoriumCharts($('#th-rho'), $('#th-days'));
+fmChart($('#fm-chart'));
+beHeatmap($('#be-chart'));
+riaChart($('#ria-chart'));
+locaTimeline($('#loca-timeline'));
 drawModule($('#module-svg'));
 
 // ---- team ----
-const teamList = $('#team');
-teamList.innerHTML = TEAM.map((m) => {
-  const name = m.link ? `<a href="${m.link}" target="_blank" rel="noopener">${m.name}</a>` : m.name;
-  return `<li><span class="name">${name}</span><span class="role">${m.role || ''}</span></li>`;
+function initials(name) {
+  return name.trim().split(/\s+/).map((p) => p[0]).join('').toLocaleUpperCase('tr');
+}
+$('#team').innerHTML = TEAM.map((m) => {
+  const kind = /kaptan/i.test(m.role) ? ' is-lead' : /danışman/i.test(m.role) ? ' is-advisor' : '';
+  const inner =
+    `<span class="avatar" aria-hidden="true">${initials(m.name)}</span>` +
+    `<span class="who"><span class="name">${m.name}</span><span class="role">${m.role || ''}</span></span>`;
+  return m.link
+    ? `<li><a class="member${kind}" href="${m.link}" target="_blank" rel="noopener">${inner}` +
+      `<svg class="icon" aria-label="LinkedIn"><use href="#i-linkedin"/></svg></a></li>`
+    : `<li><div class="member${kind}">${inner}</div></li>`;
 }).join('');
 
-// ---- 2D core map ----
-let core3d = null;
+// ---- 3D core and the 2D map, kept in sync ----
+const stage = initStage();
 const map = initCoreMap({
   mapCanvas: $('#coremap'),
   detailCanvas: $('#asm-canvas'),
   facts: $('#asm-facts'),
   note: $('#map-note'),
   toggle: $('.toggle'),
-  onSelect: (r, c) => core3d && core3d.select(r, c),
+  onSelect: (r, c) => stage.select(r, c),
 });
+stage.onSelect = (r, c) => map.select(r, c);
 
-// ---- 3D core ----
-const powerEl = $('#power');
-const powerLabel = $('.readout-label');
-const picked = $('#picked');
-const btn = $('#scram');
+// Original COBRA-TF plots load only when their panel is opened.
+document.querySelectorAll('details.orig').forEach((d) => d.addEventListener('toggle', () => {
+  const img = d.querySelector('img[data-src]');
+  if (d.open && img) { img.src = img.dataset.src; img.removeAttribute('data-src'); }
+}, { once: true }));
 
-function groupOf(r, c) {
-  for (const [g, list] of Object.entries(ROD_GROUPS)) if (list.some(([a, b]) => a === r && b === c)) return g;
-  return null;
-}
-
-function showPicked(r, c) {
-  if (r === null) { picked.hidden = true; return; }
-  const name = CORE[r][c];
-  const a = ASSEMBLIES[name];
-  const g = groupOf(r, c);
-  picked.innerHTML =
-    `<b>${name}</b><br>UO₂ zenginliği %${a.enr.toFixed(2)}<br>` +
-    (a.tho2 ? `${a.tho2} ThO₂ çubuğu` : 'toryum çubuğu yok') +
-    (g ? `<br>Kontrol grubu ${g}` : '') +
-    `<br><a href="#kor">Haritada gör</a>`;
-  picked.hidden = false;
-}
-
-core3d = initCore3D($('#core3d'), {
-  onPick: (r, c) => {
-    showPicked(r, c);
-    if (r !== null) map.select(r, c);
-  },
-  onPower: (p) => {
-    powerEl.textContent = '%' + Math.round(p * 100);
-    powerLabel.textContent = p <= 0.061 ? 'Kor gücü, bozunma ısısı' : 'Kor gücü';
-  },
+// "3B modelde oynat": go up to the model and start the RIA replay there.
+const riaBtn = $('#ria-3d');
+if (!stage.has3d) riaBtn.hidden = true;
+riaBtn.addEventListener('click', () => {
+  const smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  $('.stage').scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'center' });
+  setTimeout(() => $('#ria').click(), smooth ? 700 : 0);
 });
-
-if (!core3d) {
-  $('#core3d').hidden = true;
-  $('.stage-fallback').hidden = false;
-  $('.readout').hidden = true;
-  btn.hidden = true;
-  $('#stage-hint').textContent = 'Tarayıcın 3B çizimi desteklemediği için Serpent görüntüsü gösteriliyor.';
-} else {
-  btn.addEventListener('click', () => {
-    if (core3d.animating) return;
-    if (btn.classList.contains('is-reset')) {
-      core3d.withdraw();
-      btn.classList.remove('is-reset');
-      btn.textContent = 'SCRAM';
-    } else {
-      core3d.scram();
-      btn.classList.add('is-reset');
-      btn.textContent = 'Çubukları çek';
-    }
-  });
-}

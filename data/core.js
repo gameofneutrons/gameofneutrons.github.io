@@ -230,3 +230,14 @@ export const ASSEMBLIES = {
 };
 export const ROD_GROUPS = {"D1": [[2, 3], [3, 2], [3, 4], [4, 3]], "D2": [[0, 3], [3, 0], [3, 6], [6, 3]], "K1": [[1, 4], [2, 1], [4, 5], [5, 2]], "K2": [[1, 2], [2, 5], [4, 1], [5, 4]]};
 export const ROD_WORTH_PCM = {D1: 1879, D2: 1901, K1: 2997, K2: 2992, ALL: 16303};
+
+// Normalized assembly powers (radial), from the Serpent core calculation (FDR, radial power map).
+export const POWER = [
+  [null, null, 1.0291, 0.9951, 1.0291, null, null],
+  [null, 1.0030, 1.0233, 0.9880, 1.0233, 1.0030, null],
+  [1.0291, 1.0233, 0.9791, 0.9322, 0.9791, 1.0233, 1.0291],
+  [0.9951, 0.9880, 0.9322, 0.9910, 0.9322, 0.9880, 0.9951],
+  [1.0291, 1.0233, 0.9791, 0.9322, 0.9791, 1.0233, 1.0291],
+  [null, 1.0030, 1.0233, 0.9880, 1.0233, 1.0030, null],
+  [null, null, 1.0291, 0.9951, 1.0291, null, null],
+];

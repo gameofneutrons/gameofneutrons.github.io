@@ -1,16 +1,6 @@
 // 2D core map (fuel / radial power) and the pin-by-pin view of one assembly.
-import { CORE, ASSEMBLIES, ROD_GROUPS, ROD_WORTH_PCM } from '../data/core.js';
+import { CORE, ASSEMBLIES, ROD_GROUPS, ROD_WORTH_PCM, POWER } from '../data/core.js';
 
-// Normalized assembly powers from the Serpent core calculation.
-const POWER = [
-  [null, null, 1.0291, 0.9951, 1.0291, null, null],
-  [null, 1.0030, 1.0233, 0.9880, 1.0233, 1.0030, null],
-  [1.0291, 1.0233, 0.9791, 0.9322, 0.9791, 1.0233, 1.0291],
-  [0.9951, 0.9880, 0.9322, 0.9910, 0.9322, 0.9880, 0.9951],
-  [1.0291, 1.0233, 0.9791, 0.9322, 0.9791, 1.0233, 1.0291],
-  [null, 1.0030, 1.0233, 0.9880, 1.0233, 1.0030, null],
-  [null, null, 1.0291, 0.9951, 1.0291, null, null],
-];
 
 const GROUP_NAME = { D1: 'D1, düzenleme', D2: 'D2, düzenleme', K1: 'K1, kapatma', K2: 'K2, kapatma' };
 const TH = '#62c98a';
@@ -164,6 +154,7 @@ export function initCoreMap({ mapCanvas, detailCanvas, facts, note, toggle, onSe
   function select(r, c, fromOutside = false) {
     if (r === null || !CORE[r] || !CORE[r][c]) return;
     sel = [r, c];
+    mapCanvas.setAttribute('aria-label', `37 demetlik kor haritası. Seçili demet ${CORE[r][c]}. Ok tuşlarıyla başka bir demete geçebilirsiniz.`);
     drawMap();
     drawDetail();
     if (!fromOutside && onSelect) onSelect(r, c);
@@ -174,6 +165,19 @@ export function initCoreMap({ mapCanvas, detailCanvas, facts, note, toggle, onSe
     const { pad, cell } = geometry(rect.width);
     const c = Math.floor((e.clientX - rect.left - pad) / cell);
     const r = Math.floor((e.clientY - rect.top - pad) / cell);
+    if (r >= 0 && r < 7 && c >= 0 && c < 7) select(r, c);
+  });
+
+  // Keyboard: arrow keys move the selection to the next assembly in that direction.
+  mapCanvas.tabIndex = 0;
+  mapCanvas.setAttribute('role', 'application');
+  mapCanvas.setAttribute('aria-roledescription', 'kor haritası');
+  mapCanvas.addEventListener('keydown', (e) => {
+    const dir = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }[e.key];
+    if (!dir) return;
+    e.preventDefault();
+    let [r, c] = sel;
+    do { r += dir[0]; c += dir[1]; } while (r >= 0 && r < 7 && c >= 0 && c < 7 && !CORE[r][c]);
     if (r >= 0 && r < 7 && c >= 0 && c < 7) select(r, c);
   });
 

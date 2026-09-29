@@ -1,43 +1,6 @@
-// Hand-built SVG figures: thorium chart and the module-in-pool schematic.
+// Hand-built SVG figure: the module-in-pool schematic.
 
 const NS = 'http://www.w3.org/2000/svg';
-
-// Beginning-of-cycle excess reactivity vs thorium share of heavy metal,
-// read from the team's Serpent burnup study (FDR, thorium section).
-const TH_DATA = [[0, 0.202], [5, 0.192], [10, 0.168], [15, 0.152], [20, 0.127], [25, 0.100]];
-
-export function drawThoriumChart(svg) {
-  const W = 520, H = 360, L = 70, R = 24, T = 26, B = 64;
-  const x = (v) => L + (v / 25) * (W - L - R);
-  const y = (v) => T + ((0.22 - v) / (0.22 - 0.08)) * (H - T - B);
-  let s = '';
-  for (const v of [0.08, 0.12, 0.16, 0.20]) {
-    s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="#d6dee7" stroke-width="1"/>`;
-    s += `<text x="${L - 10}" y="${y(v) + 5}" text-anchor="end" class="tk">${v.toFixed(2)}</text>`;
-  }
-  for (const v of [0, 5, 10, 15, 20, 25]) {
-    s += `<text x="${x(v)}" y="${H - B + 24}" text-anchor="middle" class="tk">${v}</text>`;
-  }
-  s += `<line x1="${L}" x2="${W - R}" y1="${H - B}" y2="${H - B}" stroke="#0a2440" stroke-width="1.5"/>`;
-  const pts = TH_DATA.map(([a, b]) => `${x(a)},${y(b)}`).join(' ');
-  s += `<polyline points="${pts}" fill="none" stroke="#0f5fa8" stroke-width="2.5" stroke-linejoin="round"/>`;
-  for (const [a, b] of TH_DATA) {
-    if (a === 15) continue;
-    s += `<circle cx="${x(a)}" cy="${y(b)}" r="4.5" fill="#fff" stroke="#0f5fa8" stroke-width="2"/>`;
-  }
-  const tx = x(15), ty = y(0.152);
-  s += `<circle cx="${tx}" cy="${ty}" r="8" fill="#62c98a" stroke="#0a2440" stroke-width="1.5"/>`;
-  s += `<text x="${tx - 14}" y="${ty + 34}" text-anchor="end" class="lb">TURKER, %15</text>`;
-  s += `<text x="${x(0) + 14}" y="${y(0.202) - 12}" class="lb2">yalnız uranyum</text>`;
-  s += `<text x="${(L + W - R) / 2}" y="${H - 10}" text-anchor="middle" class="ax">Toryumun ağır metal içindeki payı (%)</text>`;
-  s += `<text transform="translate(18 ${(T + H - B) / 2}) rotate(-90)" text-anchor="middle" class="ax">Başlangıç fazla reaktivitesi, ρ</text>`;
-  svg.innerHTML = `<style>
-    .tk{font:15px "Fira Sans",sans-serif;fill:#56657a}
-    .ax{font:15px "Fira Sans",sans-serif;fill:#1a2533}
-    .lb{font:600 17px "Fira Sans",sans-serif;fill:#0a2440}
-    .lb2{font:15px "Fira Sans",sans-serif;fill:#56657a}
-  </style>` + s;
-}
 
 export function drawModule(svg) {
   const hot = '#f2a65a', cold = '#6fd0ff', line = '#dfe8f2', dim = '#8fa6bf', lead = '#6f8aa8';
@@ -95,11 +58,11 @@ export function drawModule(svg) {
   ${stripes}
 
   <!-- natural circulation -->
-  <path d="M281,556 L281,250" stroke="${hot}" stroke-width="4" fill="none" marker-end="url(#aHot)"/>
-  <path d="M275,242 Q250,222 238,252" stroke="${hot}" stroke-width="3" fill="none" marker-end="url(#aHot)"/>
-  <path d="M287,242 Q312,222 324,252" stroke="${hot}" stroke-width="3" fill="none" marker-end="url(#aHot)"/>
-  <path d="M236,462 L236,672 Q236,688 256,688 L266,688" stroke="${cold}" stroke-width="3.5" fill="none" marker-end="url(#aCold)"/>
-  <path d="M326,462 L326,672 Q326,688 306,688 L296,688" stroke="${cold}" stroke-width="3.5" fill="none" marker-end="url(#aCold)"/>
+  <path class="flow" d="M281,556 L281,250" stroke="${hot}" stroke-width="4" fill="none" marker-end="url(#aHot)"/>
+  <path class="flow" d="M275,242 Q250,222 238,252" stroke="${hot}" stroke-width="3" fill="none" marker-end="url(#aHot)"/>
+  <path class="flow" d="M287,242 Q312,222 324,252" stroke="${hot}" stroke-width="3" fill="none" marker-end="url(#aHot)"/>
+  <path class="flow" d="M236,462 L236,672 Q236,688 256,688 L266,688" stroke="${cold}" stroke-width="3.5" fill="none" marker-end="url(#aCold)"/>
+  <path class="flow" d="M326,462 L326,672 Q326,688 306,688 L296,688" stroke="${cold}" stroke-width="3.5" fill="none" marker-end="url(#aCold)"/>
 
   <!-- ECCS valves: 3 RVV on the head, 2 RRV on the side -->
   ${valve(256, 112, -35)}${valve(281, 102)}${valve(306, 112, 35)}
