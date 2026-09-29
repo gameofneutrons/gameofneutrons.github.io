@@ -858,12 +858,13 @@ figcaption { font-size: .88rem; color: var(--muted); margin-top: .75rem; }
 
 .coef { margin-top: clamp(2.5rem, 5vw, 4rem); }
 .coef .prose { margin-bottom: 1.25rem; }
-.coef-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: .75rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr)); }
-@media (max-width: 63.99rem) { .coef-grid li:last-child { grid-column: 1 / -1; } }
-@media (min-width: 64rem) { .coef-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+/* Six cards: 2 × 3 on phones, 3 × 2 on tablets, one row on wide screens. */
+.coef-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: .75rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 40rem) { .coef-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 80rem) { .coef-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
 .coef-grid li { display: flex; flex-direction: column; gap: .15rem; padding: 1rem 1.1rem; background: var(--paper); border: 1px solid var(--line-2); border-radius: 12px; }
-.coef-v { font-size: 1.3rem; font-weight: 700; letter-spacing: -.01em; color: var(--blue); white-space: nowrap; }
-.coef-v small { font-size: .62em; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+.coef-v { font-size: 1.3rem; font-weight: 700; letter-spacing: -.01em; color: var(--blue); }
+.coef-v small { font-size: .62em; font-weight: 500; color: var(--muted); letter-spacing: 0; white-space: nowrap; }  /* on narrow phones the unit drops below the number */
 .coef-k { font-weight: 600; font-size: .92rem; color: var(--navy); }
 .coef-d { font-size: .82rem; color: var(--muted); }
 
