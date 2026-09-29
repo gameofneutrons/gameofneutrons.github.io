@@ -37,6 +37,15 @@ function rodGroupAt(r, c) {
   return null;
 }
 
+// A cylinder without its bottom cap. The camera never goes below the core, so those
+// triangles are never seen; CylinderGeometry adds the bottom cap as its last group.
+function withoutBottomCap(geo) {
+  const bottom = geo.groups[2];
+  geo.setIndex(Array.from(geo.index.array.subarray(0, bottom.start)));
+  geo.clearGroups();
+  return geo;
+}
+
 function glowTexture() {
   const s = 256, cv = document.createElement('canvas');
   cv.width = cv.height = s;
@@ -94,7 +103,7 @@ function heatGLSL() {
   }`;
 }
 
-export function initCore3D(canvas, { onPick, onHover, onPower, onRia, onBusy } = {}) {
+export function initCore3D(canvas, { onPick, onHover, onPower, onRia, onBusy, onAwake } = {}) {
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   let renderer;
@@ -104,7 +113,18 @@ export function initCore3D(canvas, { onPick, onHover, onPower, onRia, onBusy } =
     canvas.dataset.err = String(e && e.message || e);
     return null;
   }
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+  // Phones start with fewer pixels: their screens are dense enough that 1.5× still looks sharp,
+  // and their GPUs are far slower. The render loop lowers this further if frames arrive late.
+  const coarse = matchMedia('(pointer: coarse)').matches;
+  let pixelRatio = Math.min(devicePixelRatio || 1, coarse ? 1.5 : 2);
+  renderer.setPixelRatio(pixelRatio);
+  // Phones also get a lighter model. A pin is one or two pixels wide there, so a 4-sided pin
+  // looks the same as an 8-sided one, and Lambert shading costs far less than PBR on 9768 pins.
+  // ?lite=1 or ?lite=0 in the address forces either way, for testing.
+  const liteParam = new URLSearchParams(location.search).get('lite');
+  const lite = liteParam ? liteParam === '1' : coarse;
+  const Shaded = lite ? THREE.MeshLambertMaterial : THREE.MeshStandardMaterial;
+  const pbr = (params) => (lite ? {} : params);
   renderer.setClearColor(0x000000, 0);  // the hero background shows through
   renderer.localClippingEnabled = true;
 
@@ -152,7 +172,7 @@ export function initCore3D(canvas, { onPick, onHover, onPower, onRia, onBusy } =
   // Fuel pins. The power view blends each pin towards a heat colour for its local power:
   // assembly power × axial shape (Serpent, rods out) × the rod-state multiplier (uShape).
   // ThO2 pins make almost no power at the start of the cycle.
-  const pinGeo = new THREE.CylinderGeometry(PIN_R, PIN_R, H, 8, 1);
+  const pinGeo = withoutBottomCap(new THREE.CylinderGeometry(PIN_R, PIN_R, H, lite ? 4 : 8, 1));
   pinGeo.translate(0, H / 2, 0);
   const pow = new Float32Array(pins.length);
   pins.forEach((p, i) => { pow[i] = p.th ? 0 : asmList[p.asm].power; });
@@ -175,7 +195,7 @@ export function initCore3D(canvas, { onPick, onHover, onPower, onRia, onBusy } =
     uShape: { value: shapeTex },
     uAsmN: { value: ROD_SHAPES.assemblies },
   };
-  const pinMat = new THREE.MeshStandardMaterial({ roughness: 0.55, metalness: 0.05 });
+  const pinMat = new Shaded(pbr({ roughness: 0.55, metalness: 0.05 }));
   pinMat.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = 'attribute float aPow;\nattribute float aAsm;\nvarying float vPow;\nvarying float vAsm;\nvarying float vZ;\n' +
@@ -246,8 +266,8 @@ export function initCore3D(canvas, { onPick, onHover, onPower, onRia, onBusy } =
   placeRods(ROD_LIFT);
 
   // ---- beryllium reflector (r 94.5 to 114.5 cm) and lower plate ----
-  const beMat = new THREE.MeshStandardMaterial({
-    color: 0xcfc3e2, transparent: true, opacity: 0.1, roughness: 0.8,
+  const beMat = new Shaded({
+    color: 0xcfc3e2, transparent: true, opacity: 0.1, ...pbr({ roughness: 0.8 }),
     side: THREE.DoubleSide, depthWrite: false,
   });
   const beTopMat = beMat.clone();
@@ -307,8 +327,23 @@ export function initCore3D(canvas, { onPick, onHover, onPower, onRia, onBusy } =
   controls.autoRotate = !reduceMotion;
   controls.autoRotateSpeed = 0.55;
   controls.addEventListener('start', () => { controls.autoRotate = false; tween = null; });
-  // OrbitControls blocks all touch gestures; let vertical swipes scroll the page.
-  canvas.style.touchAction = 'pan-y';
+  // OrbitControls blocks every touch gesture on the canvas. On phones the model therefore
+  // starts parked: swipes scroll the page and a tap wakes it, after which it turns freely and
+  // the page stays put. A tap outside the stage, or scrolling it out of view, parks it again.
+  // Elsewhere vertical swipes keep scrolling the page.
+  const stageEl = canvas.closest('.stage') || canvas.parentElement;
+  let awake = !coarse;
+  function setAwake(on) {
+    if (!coarse || on === awake) return;
+    awake = on;
+    controls.enabled = on;
+    canvas.style.touchAction = on ? 'none' : 'auto';
+    onAwake && onAwake(on);
+  }
+  controls.enabled = awake;
+  canvas.style.touchAction = coarse ? 'auto' : 'pan-y';
+  if (coarse && onAwake) onAwake(false);
+  document.addEventListener('pointerdown', (e) => { if (awake && !stageEl.contains(e.target)) setAwake(false); });
 
   canvas.addEventListener('wheel', (e) => {
     if (!(e.ctrlKey || e.metaKey)) return;
@@ -385,6 +420,7 @@ export function initCore3D(canvas, { onPick, onHover, onPower, onRia, onBusy } =
   canvas.addEventListener('pointerup', (e) => {
     if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 6) { down = null; return; }
     down = null;
+    if (!awake) { setAwake(true); return; }  // the first tap only wakes the model
     selected = hitAt(e.clientX, e.clientY);
     boxAt(selBox, selected);
     const a = asmList[selected];
@@ -535,14 +571,51 @@ export function initCore3D(canvas, { onPick, onHover, onPower, onRia, onBusy } =
   }
 
   // ---- loop, paused when the hero is off screen ----
+  // Phones are capped at 60 fps (a 120 Hz phone would otherwise draw twice as often); computers
+  // draw at their screen's rate. Motion is time-based, so the model turns at the same speed at
+  // any frame rate. If frames keep arriving late (below ~42 fps), the view drops to fewer
+  // pixels, a quarter step at a time.
+  const FRAME_MS = coarse ? 1000 / 62 : 0;  // just under 1/60 s, so 60 Hz screens never skip a frame
+  const SLOW_MS = 24;
   let visible = true;
-  new IntersectionObserver(([en]) => { visible = en.isIntersecting; }, { threshold: 0.01 }).observe(canvas);
+  new IntersectionObserver(([en]) => {
+    visible = en.isIntersecting;
+    if (!visible) setAwake(false);
+  }, { threshold: 0.01 }).observe(canvas);
 
-  let last = performance.now();
+  let frames = 0, slow = 0, warmup = 60;
+  function adaptResolution(gap) {
+    if (warmup > 0) { warmup--; return; }  // skip shader compiles and resumes
+    frames++;
+    if (gap > SLOW_MS) slow++;
+    if (frames < 60) return;
+    if (slow > 20 && pixelRatio > 1) {
+      pixelRatio = Math.max(1, pixelRatio - 0.25);
+      renderer.setPixelRatio(pixelRatio);
+      warmup = 30;
+    }
+    frames = slow = 0;
+  }
+
+  // ?fps in the address shows the frame rate and pixel ratio, for testing on phones.
+  let fpsBox = null, fpsN = 0, fpsT = performance.now();
+  if (/[?&]fps\b/.test(location.search)) {
+    fpsBox = document.createElement('div');
+    fpsBox.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:99;padding:4px 8px;border-radius:6px;background:rgba(0,0,0,.75);color:#fff;font:12px/1.4 monospace';
+    document.body.append(fpsBox);
+  }
+
+  let lastTick = performance.now(), lastFrame = lastTick, budget = 0;
   renderer.setAnimationLoop((now) => {
-    if (!visible || document.hidden) { last = now; return; }
-    const dt = Math.min(0.1, (now - last) / 1000);
-    last = now;
+    if (!visible || document.hidden) { lastTick = lastFrame = now; budget = 0; warmup = 30; return; }
+    budget += now - lastTick;
+    lastTick = now;
+    if (budget < FRAME_MS) return;
+    budget = Math.min(budget - FRAME_MS, FRAME_MS);
+    const gap = now - lastFrame;
+    lastFrame = now;
+    const dt = Math.min(0.1, gap / 1000);
+    adaptResolution(gap);
     if (mix !== mixTarget) {
       mix += Math.sign(mixTarget - mix) * Math.min(Math.abs(mixTarget - mix), dt * 2.5);
       uniforms.uMix.value = mix;
@@ -551,8 +624,12 @@ export function initCore3D(canvas, { onPick, onHover, onPower, onRia, onBusy } =
     if (anim) anim(now);
     if (tween) tween(now);
     updateHover();
-    controls.update();
+    controls.update(dt);
     renderer.render(scene, camera);
+    if (fpsBox && (++fpsN, now - fpsT >= 1000)) {
+      fpsBox.textContent = `${Math.round(fpsN * 1000 / (now - fpsT))} fps · ${pixelRatio}×`;
+      fpsN = 0; fpsT = now;
+    }
   });
 
   return {

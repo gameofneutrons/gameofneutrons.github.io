@@ -74,6 +74,13 @@ export function initStage() {
 
   const core = initCore3D($('#core3d'), {
     onPick: (r, c) => { showPicked(r, c); if (r !== null) onSelect(r, c); },
+    // Phones only: the model is parked until tapped, so swipes over it scroll the page.
+    onAwake: (on) => {
+      $('.viewport').classList.toggle('is-awake', on);
+      $('#stage-hint').textContent = on
+        ? 'Sürükleyerek çevirin, bir demete dokunun. Bitince modelin dışına dokunun.'
+        : 'Çevirmek için modele dokunun.';
+    },
     onHover: (h) => {
       if (!h) { tip.hidden = true; return; }
       const { name, a } = describe(h.r, h.c);

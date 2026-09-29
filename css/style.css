@@ -259,6 +259,14 @@ sub, sup { font-size: .7em; line-height: 0; }
 .stage { margin: 0; min-width: 0; }
 .viewport { position: relative; height: clamp(21rem, 92vw, 32rem); }
 @media (min-width: 64rem) { .viewport { height: min(64svh, 40rem); min-height: 30rem; } }
+/* Phones: the model is parked until tapped; once awake it gets a thin glowing frame. */
+.viewport::after {
+  content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  border-radius: 18px;
+  box-shadow: inset 0 0 0 1.5px rgba(111, 208, 255, .6), inset 0 0 28px rgba(111, 208, 255, .12);
+  opacity: 0; transition: opacity .25s;
+}
+.viewport.is-awake::after { opacity: 1; }
 
 #core3d { width: 100%; height: 100%; touch-action: pan-y; cursor: grab; }
 #core3d:active { cursor: grabbing; }
@@ -348,6 +356,15 @@ sub, sup { font-size: .7em; line-height: 0; }
   background: rgba(8, 28, 51, .78);
   -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, .12); border-radius: 12px;
+}
+/* Phones: a backdrop blur over the live 3D canvas is redone every frame and costs them a lot of
+   GPU time; slightly more opaque plain backgrounds look almost the same. */
+@media (pointer: coarse) {
+  .site-header.is-scrolled, .site-header.menu-open, .picked, .toolbar, .ria-card {
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+  }
+  .site-header.is-scrolled, .site-header.menu-open { background: rgba(8, 28, 51, .96); }
+  .picked, .toolbar, .ria-card { background: rgba(8, 28, 51, .92); }
 }
 .ria-head { display: flex; justify-content: space-between; gap: .5rem; font-size: .74rem; color: var(--on-dark-3); margin-bottom: .2rem; }
 .ria-head b { color: #fff; font-weight: 600; font-variant-numeric: tabular-nums; }
